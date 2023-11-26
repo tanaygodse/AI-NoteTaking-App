@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "lib": ["ESNext", "DOM"],
+    "noEmit": true,
+    "jsx": "react",
+    "moduleResolution": "NodeNext"
+  },
+  "include": ["./src", "./node_modules/**/*"]
+}
