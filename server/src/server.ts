@@ -3,7 +3,13 @@
 import express, { Request, Response } from 'express';
 import mongoose, { Document, Schema } from 'mongoose';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import { ConnectionOptions } from 'tls';
+
+mongoose.connect('mongodb://localhost:27017/notetaking-app', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+} as ConnectionOptions);
 
 // Define types
 interface BoundingRect {
@@ -56,7 +62,7 @@ const app = express();
 const port = 5001;
 
 app.use(bodyParser.json());
-
+app.use(cors());
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/notetaking-app', {
   useNewUrlParser: true,
@@ -111,7 +117,7 @@ const Post = mongoose.model<PostDocument>('Post', PostSchema);
 // Define routes
 app.post('/posts', (req: Request, res: Response) => {
   const postData: PostRequestData = req.body;
-
+  console.log(postData);
   // Assuming there is only one key in postData
   const url = Object.keys(postData)[0];
   const postContent = postData[url];
@@ -141,6 +147,34 @@ app.post('/posts', (req: Request, res: Response) => {
   }
 });
 
+app.get('/posts', async (req, res) => {
+  try {
+    // Connect to the MongoDB database
+    console.log(req);
+    const targetTitle = req.query.url;
+
+    // Query MongoDB to find documents with the specified title, excluding "__v"
+    const result = await Post.find({ title: targetTitle }, { __v: 0 });
+
+    // Convert MongoDB _id to string for the outermost id
+    const outerId = result.length > 0 ? result[0]._id.toString() : null;
+
+    // Map the result to exclude the _id from each nested object and include the URL
+    const processedResult = result.map(item => {
+      const { _id, title, ...rest } = item.toObject(); // Convert Mongoose document to plain object and exclude _id
+      return { ...rest, id: _id.toString(), title };
+    });
+
+    // Initialize an object to store the results with the URL as the key
+    const resultObject = outerId ? { [result[0].title]: processedResult } : null;
+
+    // Send the result as JSON
+    res.json(resultObject);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
