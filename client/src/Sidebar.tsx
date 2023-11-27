@@ -66,11 +66,6 @@ export function Sidebar({
       <div style={{ padding: "1rem" }}>
         <button onClick={toggleDocument}>Use another document</button>
       </div>
-      {highlights.length > 0 ? (
-        <div style={{ padding: "1rem" }}>
-          <button onClick={resetHighlights}>Reset Notes</button>
-        </div>
-      ) : null}
     </div>
   );
 }
