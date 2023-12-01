@@ -112,6 +112,7 @@ const PostSchema = new Schema<PostDocument>({
   },
 });
 
+
 const Post = mongoose.model<PostDocument>('Post', PostSchema);
 
 // Define routes
@@ -175,6 +176,7 @@ app.get('/posts', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

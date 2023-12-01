@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-
+import Autocomplete from "./Autocomplete";
 import "./style/Tip.css";
 
 interface State {
@@ -53,6 +53,7 @@ export class Tip extends Component<Props, State> {
             }}
           >
             <div>
+              <Autocomplete></Autocomplete>
               <textarea
                 placeholder="Your comment"
                 autoFocus

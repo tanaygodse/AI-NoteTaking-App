@@ -1,0 +1,25 @@
+#autocomplete {
+    opacity: 0.6;
+    background: transparent;
+    position: absolute;
+    box-sizing: border-box;
+    cursor: text;
+    pointer-events: none;
+    color: black;
+    width: 421px;
+    border: none;
+  }
+  
+  .vc_textarea {
+    padding: 10px;
+    min-height: 100px;
+    resize: none;
+  }
+  
+  #mainInput {
+    background: transparent;
+    color: black;
+    opacity: 1;
+    width: 400px;
+  }
+  
