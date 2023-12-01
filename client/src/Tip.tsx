@@ -54,7 +54,7 @@ export class Tip extends Component<Props, State> {
           >
             <div>
               <Autocomplete></Autocomplete>
-              <textarea
+              {/* <textarea
                 placeholder="Your comment"
                 autoFocus
                 value={text}
@@ -66,7 +66,7 @@ export class Tip extends Component<Props, State> {
                     node.focus();
                   }
                 }}
-              />
+              /> */}
             </div>
             <div>
               <input type="submit" value="Save" />
