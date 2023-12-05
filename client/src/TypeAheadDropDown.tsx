@@ -5,7 +5,6 @@ import './style/TypeAheadDropDown.css';
 interface TypeAheadDropDownProps {
   items: Trie<string>; // Assuming 'items' is the Trie containing suggestions
   onTextChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  summary: string;
 }
 
 interface TypeAheadDropDownState {
@@ -80,24 +79,12 @@ export default class TypeAheadDropDown extends React.Component<TypeAheadDropDown
     }
     return (
       <ul>
-        {suggestions.map(city => (
-          <li key={city} onClick={(e) => this.suggestionSelected(city)}>{city}</li>
+        {suggestions.map(summary => (
+          <li key={summary} onClick={(e) => this.suggestionSelected(summary)}>{summary}</li>
         ))}
       </ul>
     );
   };
-
-  componentDidUpdate(prevProps: TypeAheadDropDownProps) {
-    // Check if the 'summary' prop has changed
-    if (prevProps.summary !== this.props.summary) {
-      console.log('summary changed in TADD');
-      this.setState(() => ({
-        text: this.props.summary,
-        suggestions: [],
-      }));
-      console.log(this.props.summary);
-    }
-  }
 
   render() {
     const { text } = this.state;
@@ -106,7 +93,7 @@ export default class TypeAheadDropDown extends React.Component<TypeAheadDropDown
         <textarea
           ref={this.textareaRef}
           onChange={this.onTextChange}
-          placeholder="Search city name"
+          placeholder="Your Notes..."
           value={text}
         />
         {this.renderSuggestions()}

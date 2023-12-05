@@ -63,9 +63,9 @@ export function Sidebar({
           </li>
         ))}
       </ul>
-      <div style={{ padding: "1rem" }}>
+      {/* <div style={{ padding: "1rem" }}>
         <button onClick={toggleDocument}>Use another document</button>
-      </div>
+      </div> */}
     </div>
   );
 }

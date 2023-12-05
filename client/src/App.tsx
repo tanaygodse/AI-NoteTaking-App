@@ -146,24 +146,60 @@ const addHighlight = async (highlight: NewHighlight) => {
   // Handle the error as needed
 }
 }
+const addHighlightWithSummary = async (highlight: NewHighlight): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    try {
+      // Assuming addHighlight is a function that returns a promise
+      addHighlight(highlight).then(() => {
+        resolve();
+      }).catch((error) => {
+        reject(error);
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
 const summarizeHighlight = async (highlight: NewHighlight) => { 
-    await axios
-    .get("http://localhost:105/summarize", {params: { text: highlight.content.text }})
-    .then((response) => {
-      const { data } = response;
-      if(data !== null){
-        setSummary(data);
-        
-      }else{
-        setSummary("");
-      }
-      console.log("summarize in app tsx")
-    })
-    .catch((error) => {
-      console.error("Error fetching summary:", error);
+  console.log("called summarize");
+
+  try {
+    const response = await axios.get("http://localhost:105/summarize", {
+      params: { text: highlight.content.text }
     });
-}
+
+    const { data } = response;
+
+    // Check if data is not null or undefined
+    if (data != null) {
+      // Ensure setSummary is updating the state correctly
+      setSummary(data);
+
+      // Create a new object instead of modifying the original highlight
+      const highlightWithSummary: NewHighlight = {
+        ...highlight,
+        comment: {
+          text: data  // Use data directly here instead of summary
+        }
+      };
+
+      console.log("highlight_with_summary", highlightWithSummary);
+
+      // Wait for addHighlightWithSummary to complete before moving on
+      await addHighlightWithSummary(highlightWithSummary);
+    } else {
+      // Handle the case where data is null or undefined
+      setSummary("");
+    }
+  } catch (error) {
+    console.error("Error fetching summary:", error);
+    // Handle the error appropriately
+  }
+};
+
+
+
 
 useEffect(() => {
   console.log('summary changed in app');
@@ -252,19 +288,29 @@ useEffect(() => {
                 hideTipAndSelection,
                 transformSelection
               ) => (
-                <Tip
-                  onOpen={transformSelection}
-                  onConfirm={(comment) => {
-                    addHighlight({ content, position, comment });
-  
-                    hideTipAndSelection();
-                  }}
-                  onSummarize={(comment) => {
-                    summarizeHighlight({ content, position, comment });
-                  }}
-                  trie={trie}
-                  summary={summary}
-                />
+                <div>
+                  <div style={{"cursor": "pointer",
+                  "backgroundColor": "#3d464d",
+                  "border": "1px solid rgba(255, 255, 255, 0.25)",
+                  "color": "white",
+                  "padding": "5px 10px",
+                  "borderRadius": "3px",
+                  "display": "inline-block"}}
+                  onClick={(comment)=> summarizeHighlight({ content, position, comment })}>
+                    Summarize
+                  </div>
+                  <Tip
+                    onOpen={transformSelection}
+                    onConfirm={(comment) => {
+                      addHighlight({ content, position, comment });
+    
+                      hideTipAndSelection();
+                    }}
+                    trie={trie}
+                    summary={summary}
+                  />
+                </div>
+                
               )}
               highlightTransform={(
                 highlight,
@@ -302,8 +348,9 @@ useEffect(() => {
                 return (
                   <Popup
                     popupContent={<HighlightPopup {...highlight} />}
-                    onMouseOver={(popupContent) =>
+                    onMouseOver={(popupContent) =>{
                       setTip(highlight, (highlight) => popupContent)
+                    }
                     }
                     onMouseOut={hideTip}
                     key={index}

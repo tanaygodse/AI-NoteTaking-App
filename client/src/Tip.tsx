@@ -6,19 +6,15 @@ import "./style/Tip.css";
 
 interface TipProps {
   onConfirm: (comment: { text: string }) => void;
-  onSummarize: (comment: Comment) => void;
   onOpen: () => void;
   onUpdate?: () => void;
   trie: Trie<string>;
-  summary: string;
 }
 const Tip: React.FC<TipProps> = ({
   onConfirm,
   onOpen,
   onUpdate,
-  onSummarize,
   trie,
-  summary,
 }) => {
   console.log("Tip rendered");
   const [compact, setCompact] = useState(true);
@@ -28,18 +24,8 @@ const Tip: React.FC<TipProps> = ({
     if (onUpdate) {
       onUpdate();
     }
-  }, [summary]);
+  }, []);
 
-  useEffect(() => {
-    console.log('summary changed in tip');
-    setText(summary);
-    console.log(summary);
-  }, [summary]);
-
-  const handleSummarize = () => {
-    // Call onSummarize with the current text value
-    onSummarize({ text }); // Ensure onSummarize is called with an object containing the text property
-  };
 
   return (
     <div className="Tip">
@@ -61,10 +47,10 @@ const Tip: React.FC<TipProps> = ({
             onConfirm({ text });
           }}
         >
-          <div>
+          <div style={{"display": "inline-block"}}>
             {/* <Autocomplete trie={trie} summary={summary} /> */}
             {/* Replace the textarea with TypeAheadDropDown */}
-            <textarea
+            {/* <textarea
                 placeholder="Your comment"
                 autoFocus
                 value={text}
@@ -76,20 +62,16 @@ const Tip: React.FC<TipProps> = ({
                     node.focus();
                   }
                 }}
-              />
+              /> */}
             <TypeAheadDropDown
             onTextChange={(text) => {
               // Use the text in Tip component
               setText(text);
             }}
               items={trie}
-              summary={summary}
             />
           </div>
           <div>
-            <button type="button" onClick={handleSummarize}>
-              Summarize
-            </button>
             <button type="submit" value="Save">
               Save
             </button>
