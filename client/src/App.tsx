@@ -164,6 +164,7 @@ const addHighlightWithSummary = async (highlight: NewHighlight): Promise<void> =
 const summarizeHighlight = async (highlight: NewHighlight) => { 
   console.log("called summarize");
 
+  if(highlight.content.text){
   try {
     const response = await axios.get("http://localhost:105/summarize", {
       params: { text: highlight.content.text }
@@ -195,6 +196,9 @@ const summarizeHighlight = async (highlight: NewHighlight) => {
   } catch (error) {
     console.error("Error fetching summary:", error);
     // Handle the error appropriately
+  }
+  }else{
+    alert("Cannot summarize image selection!");
   }
 };
 
@@ -296,7 +300,10 @@ useEffect(() => {
                   "padding": "5px 10px",
                   "borderRadius": "3px",
                   "display": "inline-block"}}
-                  onClick={(comment)=> summarizeHighlight({ content, position, comment })}>
+                  onClick={(comment)=> {
+                    summarizeHighlight({ content, position, comment })
+                    hideTipAndSelection();
+                    }}>
                     Summarize
                   </div>
                   <Tip
@@ -307,7 +314,6 @@ useEffect(() => {
                       hideTipAndSelection();
                     }}
                     trie={trie}
-                    summary={summary}
                   />
                 </div>
                 
