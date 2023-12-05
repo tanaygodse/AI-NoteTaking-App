@@ -18,6 +18,8 @@ import { testHighlights as _testHighlights } from "./test-highlights";
 import { Spinner } from "./Spinner";
 import { Sidebar } from "./Sidebar";
 
+import Trie from '@shortwave/trie';
+
 import "./style/App.css";
 
 
@@ -55,15 +57,17 @@ const initialUrl = searchParams.get("url") || PRIMARY_PDF_URL;
 
 const [url, setUrl] = useState(initialUrl);
 const [highlights, setHighlights] = useState(testHighlights[initialUrl] ? testHighlights[initialUrl] : []);
+const [trie, setTrie] = useState<Trie<string> | undefined>(undefined);
+const [summary, setSummary] = useState("");
 
 const resetHighlights = () =>{
   setHighlights([]);
-}
+};
 
 const toggleDocument = () =>{
   const newUrl = url === PRIMARY_PDF_URL ? SECONDARY_PDF_URL : PRIMARY_PDF_URL;
   fetchHighlights(newUrl);
-}
+};
 
 const scrollViewerTo = (highlight: any) =>{
 };
@@ -91,9 +95,9 @@ useEffect(() => {
   };
 }, [initialUrl]);
 
-const fetchHighlights = (newUrl: string) => {
+const fetchHighlights = async (newUrl: string) => {
   // Use axios to make a GET request
-  axios
+  await axios
     .get("http://localhost:5001/posts", {params: { url: newUrl }})
     .then((response) => {
       const { data } = response;
@@ -109,6 +113,8 @@ const fetchHighlights = (newUrl: string) => {
       console.error("Error fetching highlights:", error);
     });
 }
+
+
 
 const getHighlightById = (id: string) => {
   return highlights.find((highlight) => highlight.id === id);
@@ -141,6 +147,30 @@ const addHighlight = async (highlight: NewHighlight) => {
 }
 }
 
+const summarizeHighlight = async (highlight: NewHighlight) => { 
+    await axios
+    .get("http://localhost:105/summarize", {params: { text: highlight.content.text }})
+    .then((response) => {
+      const { data } = response;
+      if(data !== null){
+        setSummary(data);
+        
+      }else{
+        setSummary("");
+      }
+      console.log("summarize in app tsx")
+    })
+    .catch((error) => {
+      console.error("Error fetching summary:", error);
+    });
+}
+
+useEffect(() => {
+  console.log('summary changed in app');
+  console.log(summary);
+  console.log('summary in app changed')
+}, [summary]);
+
 const updateHighlight = (highlightId: string, position: Object, content: Object)=> {
   console.log("Updating highlight", highlightId, position, content);
 
@@ -163,6 +193,37 @@ const updateHighlight = (highlightId: string, position: Object, content: Object)
     })
     );
 }
+const generateTrie = async () => {
+  try {
+    const response = await axios.get('http://localhost:105/generate/', {
+      params: {
+        url: url,
+      },
+    });
+
+    // Handle the response here
+    const { data } = response;
+    if (data !== null) {
+      const trie1 = new Trie<string>();
+      for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+          trie1.add({
+            key: key,
+            value: key,
+            score: data[key],
+          });
+        }
+      }
+      setTrie(trie1);
+    }
+  } catch (error) {
+    // Handle errors here
+    console.error(error);
+  }
+};
+useEffect(() => {
+  generateTrie();
+}, []);
   return (
     <div className="App" style={{ display: "flex", height: "100vh" }}>
       
@@ -198,6 +259,11 @@ const updateHighlight = (highlightId: string, position: Object, content: Object)
   
                     hideTipAndSelection();
                   }}
+                  onSummarize={(comment) => {
+                    summarizeHighlight({ content, position, comment });
+                  }}
+                  trie={trie}
+                  summary={summary}
                 />
               )}
               highlightTransform={(

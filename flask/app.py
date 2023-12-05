@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 import torch
 from transformers import pipeline
 import nltk 
@@ -8,10 +8,16 @@ import networkx as nx
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 import re
+from flask_cors import CORS
+import io
+import requests
+from pypdf import PdfReader  
+
 
 classifier = pipeline("summarization")
 
 app = Flask(__name__)
+CORS(app)
 
 
 def preprocess_text(text):
@@ -32,22 +38,32 @@ def build_text_rank_graph(words):
 
     return G
 
-@app.route('/summarize/', methods=['POST'])
+@app.route('/summarize/', methods=['GET'])
 def summarize():
     text = request.args.get('text', '')
-    return classifier(text)[0]['summary_text']
+    return classifier(text, max_length=100)[0]['summary_text']
 
-@app.route('/generate/', methods=['POST'])
-def generate():
+@app.route('/generate/', methods=['GET'])
+def generate(): 
     try:
-        print('Reached generate')
-        text = request.args.get('text', '')
-        preprocessed_words = preprocess_text(text)
+        url = request.args.get('url', '')
+        print(url)
+        r = requests.get(url)
+        f = io.BytesIO(r.content)
+        reader = PdfReader(f)
+        text = reader.pages[0].extract_text().split('\n')
+        print(text)
+
+        # Join the list elements into a single string
+        text_string = '\n'.join(text)
+
+        preprocessed_words = preprocess_text(text_string)
         text_rank_graph = build_text_rank_graph(preprocessed_words)
         text_rank_scores = nx.pagerank(text_rank_graph)
+        print(text_rank_scores)
         return jsonify(text_rank_scores)
     except Exception as e:
         return jsonify({'error': str(e)}), 400
-
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=105)
